@@ -1,0 +1,64 @@
+{
+  "name": "effect-prisma",
+  "version": "0.1.0",
+  "description": "Prisma generator for Effect repositories and schemas",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "effect-prisma": "./dist/bin.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./runtime": {
+      "types": "./dist/runtime/index.d.ts",
+      "import": "./dist/runtime/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "rm -rf dist && tsc -p tsconfig.build.json",
+    "dev": "bun run build && cd examples/basic && bun run generate",
+    "test": "bun test",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "bun run build"
+  },
+  "dependencies": {
+    "@prisma/generator-helper": "^6.0.0"
+  },
+  "peerDependencies": {
+    "@prisma/client": "^5.0.0 || ^6.0.0",
+    "effect": "^3.0.0"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@prisma/client": "^6.0.0",
+    "effect": "^3.0.0",
+    "prisma": "^6.0.0",
+    "typescript": "^5.0.0"
+  },
+  "keywords": [
+    "prisma",
+    "effect",
+    "effect-ts",
+    "generator",
+    "repository",
+    "schema",
+    "orm",
+    "typescript"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/effect-prisma.git"
+  },
+  "author": "",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
