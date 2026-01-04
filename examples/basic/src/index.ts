@@ -1,6 +1,6 @@
 import { Effect, Layer, Console } from "effect";
 import { PrismaClient } from "@prisma/client";
-import { PrismaLive } from "effect-prisma/runtime";
+import { PrismaLive, PrismaServiceLive, withTransaction } from "effect-prisma/runtime";
 import { DB } from "../generated/effect/index.js";
 
 const program = Effect.gen(function* () {
@@ -14,11 +14,27 @@ const program = Effect.gen(function* () {
   const users = yield* db.user.findMany({ take: 5 });
   yield* Console.log(`Found ${users.length} users`);
   
+  yield* Console.log("\nTesting transaction...");
+  const result = yield* withTransaction(
+    Effect.gen(function* () {
+      const user = yield* db.user.create({
+        data: { email: `tx-test-${Date.now()}@example.com`, name: "TX Test" },
+      });
+      const post = yield* db.post.create({
+        data: { title: "Transaction Test Post", authorId: user.id },
+      });
+      yield* Console.log(`Created user ${user.id} and post ${post.id} in transaction`);
+      return { user, post };
+    })
+  );
+  
+  yield* Console.log(`Transaction committed: user=${result.user.email}, post=${result.post.title}`);
+  
   return users;
 });
 
 const client = new PrismaClient();
-const PrismaLayer = PrismaLive(client);
+const PrismaLayer = Layer.provideMerge(PrismaServiceLive, PrismaLive(client));
 const AppLayer = Layer.provideMerge(DB.Default, PrismaLayer);
 
 Effect.runPromise(

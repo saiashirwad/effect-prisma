@@ -13,13 +13,14 @@ import {
   PrismaUpdateError,
   PrismaDeleteError,
   PrismaQueryError,
+  PrismaError,
   parsePrismaErrorKind,
 } from "effect-prisma/runtime";
 
 type Exec = <A, Err extends Error>(
   f: (db: PrismaClient) => Promise<A>,
-  errCallback: (cause: unknown) => Err,
-) => Effect.Effect<A, Err>;
+  errCallback?: (cause: unknown) => Err,
+) => Effect.Effect<A, Err | PrismaError>;
 
 export interface UserRepository {
   findFirst: <T extends Prisma.UserFindFirstArgs, E = PrismaNotFoundError>(
@@ -198,13 +199,14 @@ import {
   PrismaUpdateError,
   PrismaDeleteError,
   PrismaQueryError,
+  PrismaError,
   parsePrismaErrorKind,
 } from "effect-prisma/runtime";
 
 type Exec = <A, Err extends Error>(
   f: (db: PrismaClient) => Promise<A>,
-  errCallback: (cause: unknown) => Err,
-) => Effect.Effect<A, Err>;
+  errCallback?: (cause: unknown) => Err,
+) => Effect.Effect<A, Err | PrismaError>;
 
 export interface PostRepository {
   findFirst: <T extends Prisma.PostFindFirstArgs, E = PrismaNotFoundError>(
@@ -383,13 +385,14 @@ import {
   PrismaUpdateError,
   PrismaDeleteError,
   PrismaQueryError,
+  PrismaError,
   parsePrismaErrorKind,
 } from "effect-prisma/runtime";
 
 type Exec = <A, Err extends Error>(
   f: (db: PrismaClient) => Promise<A>,
-  errCallback: (cause: unknown) => Err,
-) => Effect.Effect<A, Err>;
+  errCallback?: (cause: unknown) => Err,
+) => Effect.Effect<A, Err | PrismaError>;
 
 export interface ProductRepository {
   findFirst: <T extends Prisma.ProductFindFirstArgs, E = PrismaNotFoundError>(
@@ -568,13 +571,14 @@ import {
   PrismaUpdateError,
   PrismaDeleteError,
   PrismaQueryError,
+  PrismaError,
   parsePrismaErrorKind,
 } from "@/lib/runtime";
 
 type Exec = <A, Err extends Error>(
   f: (db: PrismaClient) => Promise<A>,
-  errCallback: (cause: unknown) => Err,
-) => Effect.Effect<A, Err>;
+  errCallback?: (cause: unknown) => Err,
+) => Effect.Effect<A, Err | PrismaError>;
 
 export interface UserRepository {
   findFirst: <T extends Prisma.UserFindFirstArgs, E = PrismaNotFoundError>(
@@ -800,7 +804,7 @@ exports[`Generated Code Snapshots Index File Single model index file matches sna
 import type { PrismaClient } from "@prisma/client";
 import { Effect } from "effect";
 
-import { Prisma, createExec } from "effect-prisma/runtime";
+import { PrismaService, PrismaServiceLive, createExec } from "effect-prisma/runtime";
 
 import { createUserRepository, type UserRepository } from "./user.js";
 
@@ -817,13 +821,14 @@ export function createDBRepositories(client: PrismaClient): DBRepositories {
 
 export class DB extends Effect.Service<DB>()("effect-prisma/DB", {
   effect: Effect.gen(function* () {
-    const client = yield* Prisma;
-    const exec = createExec(client);
+    const prismaService = yield* PrismaService;
+    const exec = prismaService.exec;
 
     return {
       user: createUserRepository(exec),
     } as DBRepositories;
   }),
+  dependencies: [PrismaServiceLive],
 }) {}
 
 export * from "./errors.js";
@@ -836,7 +841,7 @@ exports[`Generated Code Snapshots Index File Multiple models index file matches 
 import type { PrismaClient } from "@prisma/client";
 import { Effect } from "effect";
 
-import { Prisma, createExec } from "effect-prisma/runtime";
+import { PrismaService, PrismaServiceLive, createExec } from "effect-prisma/runtime";
 
 import { createPostRepository, type PostRepository } from "./post.js";
 import { createProductRepository, type ProductRepository } from "./product.js";
@@ -859,8 +864,8 @@ export function createDBRepositories(client: PrismaClient): DBRepositories {
 
 export class DB extends Effect.Service<DB>()("effect-prisma/DB", {
   effect: Effect.gen(function* () {
-    const client = yield* Prisma;
-    const exec = createExec(client);
+    const prismaService = yield* PrismaService;
+    const exec = prismaService.exec;
 
     return {
       post: createPostRepository(exec),
@@ -868,6 +873,7 @@ export class DB extends Effect.Service<DB>()("effect-prisma/DB", {
       user: createUserRepository(exec),
     } as DBRepositories;
   }),
+  dependencies: [PrismaServiceLive],
 }) {}
 
 export * from "./errors.js";

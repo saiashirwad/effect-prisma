@@ -10,13 +10,14 @@ import {
   PrismaUpdateError,
   PrismaDeleteError,
   PrismaQueryError,
+  PrismaError,
   parsePrismaErrorKind,
 } from "effect-prisma/runtime";
 
 type Exec = <A, Err extends Error>(
   f: (db: PrismaClient) => Promise<A>,
-  errCallback: (cause: unknown) => Err,
-) => Effect.Effect<A, Err>;
+  errCallback?: (cause: unknown) => Err,
+) => Effect.Effect<A, Err | PrismaError>;
 
 export interface TimeEntryRepository {
   findFirst: <T extends Prisma.TimeEntryFindFirstArgs, E = PrismaNotFoundError>(

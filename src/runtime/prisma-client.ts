@@ -55,6 +55,12 @@ export class PrismaService extends Context.Tag("effect-prisma/PrismaService")<
   PrismaServiceInternal
 >() {}
 
+// Marker to indicate we're inside a transaction
+export class TxMarker extends Context.Tag("effect-prisma/TxMarker")<
+  TxMarker,
+  true
+>() {}
+
 const toPrismaError = (cause: unknown) => new PrismaError(cause);
 
 export function createExec(client: PrismaClient) {

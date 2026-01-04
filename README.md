@@ -47,7 +47,7 @@ npx prisma generate
 ```typescript
 import { Effect, Layer } from "effect";
 import { PrismaClient } from "@prisma/client";
-import { PrismaLive } from "effect-prisma/runtime";
+import { PrismaLive, PrismaServiceLive } from "effect-prisma/runtime";
 import { DB } from "./generated/effect";
 
 const program = Effect.gen(function* () {
@@ -71,7 +71,7 @@ const program = Effect.gen(function* () {
 
 // Create layers
 const client = new PrismaClient();
-const PrismaLayer = PrismaLive(client);
+const PrismaLayer = Layer.provideMerge(PrismaServiceLive, PrismaLive(client));
 const AppLayer = Layer.provideMerge(DB.Default, PrismaLayer);
 
 // Run
@@ -145,6 +145,18 @@ export const PrismaLive: (client: PrismaClient) => Layer.Layer<Prisma>
 // Scoped layer with lifecycle management
 export const PrismaLiveScoped: (createClient: () => PrismaClient) => Layer.Layer<Prisma>
 
+// Prisma Service (for transactions and fiber-local client switching)
+export class PrismaService extends Context.Tag<PrismaService, PrismaServiceInternal>() {}
+export const PrismaServiceLive: Layer.Layer<PrismaService, never, Prisma>
+
+// Transaction support
+export const withTransaction: <A, E, R>(
+  effect: Effect<A, E, R>,
+  options?: TransactionOptions
+) => Effect<A, E, R | PrismaService>
+
+export const configureTransactions: (config: Partial<TransactionConfig>) => void
+
 // Error types
 export class PrismaNotFoundError extends Schema.TaggedError<...>() {}
 export class PrismaCreateError extends Schema.TaggedError<...>() {}
@@ -174,6 +186,68 @@ Prisma error codes are parsed into semantic kinds:
 - `NULL_CONSTRAINT` (P2011)
 - `VALIDATION_ERROR` (P2006, P2012)
 - `RELATION_VIOLATION` (P2014)
+
+## Transactions
+
+Wrap multiple operations in a transaction using `withTransaction`:
+
+```typescript
+import { withTransaction } from "effect-prisma/runtime";
+
+const createOrderWithItems = (order: OrderData, items: ItemData[]) =>
+  withTransaction(
+    Effect.gen(function* () {
+      const db = yield* DB;
+      const created = yield* db.order.create({ data: order });
+      yield* db.orderItem.createMany({
+        data: items.map(item => ({ ...item, orderId: created.id }))
+      });
+      return created;
+    })
+  );
+```
+
+Transactions automatically:
+- Retry on deadlocks and serialization errors (P2034)
+- Detect nested `withTransaction` calls and reuse the existing transaction
+- Preserve domain error types through rollback
+- Use fiber-local client switching (repositories automatically use the transaction client)
+
+### Transaction Options
+
+```typescript
+withTransaction(effect, {
+  isolationLevel: "Serializable",
+  timeout: 30000,
+  maxWait: 5000,
+  mapError: (e) => new MyError(e),
+  retryPolicy: customSchedule,
+});
+```
+
+| Option | Description |
+|--------|-------------|
+| `isolationLevel` | Prisma isolation level (`ReadUncommitted`, `ReadCommitted`, `RepeatableRead`, `Serializable`, `Snapshot`) |
+| `timeout` | Transaction timeout in milliseconds |
+| `maxWait` | Maximum time to wait for a connection from the pool |
+| `mapError` | Transform `PrismaError` to a custom error type |
+| `retryPolicy` | Custom Effect `Schedule` for retry behavior |
+
+### Global Configuration
+
+```typescript
+import { configureTransactions } from "effect-prisma/runtime";
+
+configureTransactions({
+  retries: 5,
+  baseDelay: 100,
+});
+```
+
+| Config | Default | Description |
+|--------|---------|-------------|
+| `retries` | 3 | Number of retry attempts for retryable errors |
+| `baseDelay` | 50 | Base delay in milliseconds for exponential backoff |
 
 ## License
 

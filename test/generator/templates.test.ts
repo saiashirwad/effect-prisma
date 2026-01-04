@@ -255,8 +255,8 @@ describe("generateIndexFile", () => {
     expect(result).toContain('export class DB extends Effect.Service<DB>()("effect-prisma/DB"');
   });
 
-  test("imports Prisma and createExec from runtimePath", () => {
-    expect(result).toContain("import { Prisma, createExec }");
+  test("imports PrismaService, PrismaServiceLive and createExec from runtimePath", () => {
+    expect(result).toContain("import { PrismaService, PrismaServiceLive, createExec }");
     expect(result).toContain('from "effect-prisma/runtime"');
   });
 

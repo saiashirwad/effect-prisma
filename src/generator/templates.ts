@@ -223,13 +223,14 @@ import {
   PrismaUpdateError,
   PrismaDeleteError,
   PrismaQueryError,
+  PrismaError,
   parsePrismaErrorKind,
 } from "${runtimePath}";
 
 type Exec = <A, Err extends Error>(
   f: (db: PrismaClient) => Promise<A>,
-  errCallback: (cause: unknown) => Err,
-) => Effect.Effect<A, Err>;
+  errCallback?: (cause: unknown) => Err,
+) => Effect.Effect<A, Err | PrismaError>;
 
 ${generateRepositoryInterface(modelName)}
 
@@ -270,7 +271,7 @@ export function generateIndexFile(
 import type { PrismaClient } from "@prisma/client";
 import { Effect } from "effect";
 
-import { Prisma, createExec } from "${runtimePath}";
+import { PrismaService, PrismaServiceLive, createExec } from "${runtimePath}";
 
 ${imports}
 
@@ -287,13 +288,14 @@ ${helperReturnObject}
 
 export class DB extends Effect.Service<DB>()("effect-prisma/DB", {
   effect: Effect.gen(function* () {
-    const client = yield* Prisma;
-    const exec = createExec(client);
+    const prismaService = yield* PrismaService;
+    const exec = prismaService.exec;
 
     return {
 ${returnObject}
     } as DBRepositories;
   }),
+  dependencies: [PrismaServiceLive],
 }) {}
 
 export * from "./errors.js";

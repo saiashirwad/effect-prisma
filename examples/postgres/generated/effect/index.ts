@@ -3,7 +3,7 @@
 import type { PrismaClient } from "@prisma/client";
 import { Effect } from "effect";
 
-import { Prisma, createExec } from "effect-prisma/runtime";
+import { PrismaService, PrismaServiceLive, createExec } from "effect-prisma/runtime";
 
 import { createCommentRepository, type CommentRepository } from "./comment.js";
 import { createOrganizationRepository, type OrganizationRepository } from "./organization.js";
@@ -47,8 +47,8 @@ export function createDBRepositories(client: PrismaClient): DBRepositories {
 
 export class DB extends Effect.Service<DB>()("effect-prisma/DB", {
   effect: Effect.gen(function* () {
-    const client = yield* Prisma;
-    const exec = createExec(client);
+    const prismaService = yield* PrismaService;
+    const exec = prismaService.exec;
 
     return {
       comment: createCommentRepository(exec),
@@ -63,6 +63,7 @@ export class DB extends Effect.Service<DB>()("effect-prisma/DB", {
       user: createUserRepository(exec),
     } as DBRepositories;
   }),
+  dependencies: [PrismaServiceLive],
 }) {}
 
 export * from "./errors.js";
