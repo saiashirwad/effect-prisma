@@ -5,9 +5,12 @@ import { Prisma } from "@prisma/client";
 interface DecimalLike {
   isFinite(): boolean;
   toString(): string;
+  toFixed?(): string;
 }
 
 const hasPrismaDecimal = "Decimal" in Prisma;
+const formatDecimal = (value: DecimalLike): string =>
+  typeof value.toFixed === "function" ? value.toFixed() : value.toString();
 
 describe("PrismaDecimal", () => {
   let PrismaDecimal: Schema.Schema<unknown, string, never>;
@@ -21,38 +24,38 @@ describe("PrismaDecimal", () => {
     test("decodes valid decimal string", () => {
       const decode = Schema.decodeSync(PrismaDecimal);
       const result = decode("123.45");
-      expect((result as DecimalLike).toString()).toBe("123.45");
+      expect(formatDecimal(result as DecimalLike)).toBe("123.45");
     });
 
     test("decodes integer string", () => {
       const decode = Schema.decodeSync(PrismaDecimal);
       const result = decode("100");
-      expect((result as DecimalLike).toString()).toBe("100");
+      expect(formatDecimal(result as DecimalLike)).toBe("100");
     });
 
     test("decodes negative number", () => {
       const decode = Schema.decodeSync(PrismaDecimal);
       const result = decode("-50.5");
-      expect((result as DecimalLike).toString()).toBe("-50.5");
+      expect(formatDecimal(result as DecimalLike)).toBe("-50.5");
     });
 
     test("decodes zero", () => {
       const decode = Schema.decodeSync(PrismaDecimal);
       const result = decode("0");
-      expect((result as DecimalLike).toString()).toBe("0");
+      expect(formatDecimal(result as DecimalLike)).toBe("0");
     });
 
     test("decodes very large number", () => {
       const decode = Schema.decodeSync(PrismaDecimal);
       const largeNumber = "123456789012345678901234567890.12345";
       const result = decode(largeNumber);
-      expect((result as DecimalLike).toString()).toBe(largeNumber);
+      expect(formatDecimal(result as DecimalLike)).toBe(largeNumber);
     });
 
     test("decodes very small number", () => {
       const decode = Schema.decodeSync(PrismaDecimal);
       const result = decode("0.00000001");
-      expect((result as DecimalLike).toString()).toBe("0.00000001");
+      expect(formatDecimal(result as DecimalLike)).toBe("0.00000001");
     });
   });
 

@@ -4,6 +4,7 @@ import { Schema } from "effect";
 type DecimalLike = {
   isFinite(): boolean;
   toString(): string;
+  toFixed?(): string;
 };
 
 type DecimalConstructor = new (value: string | number) => DecimalLike;
@@ -28,6 +29,9 @@ export const PrismaDecimal = Schema.transform(
       }
       return decimal;
     },
-    encode: (d) => (d as DecimalLike).toString(),
+    encode: (d) => {
+      const value = d as DecimalLike;
+      return typeof value.toFixed === "function" ? value.toFixed() : value.toString();
+    },
   }
 );

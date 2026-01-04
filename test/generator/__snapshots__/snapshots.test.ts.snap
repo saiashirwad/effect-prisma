@@ -936,7 +936,7 @@ export const PostSchema = Schema.Struct({
   title: Schema.String,
   content: Schema.NullOr(Schema.String),
   published: Schema.Boolean,
-  views: Schema.Int,
+  views: Schema.BigIntFromSelf,
   createdAt: Schema.Date,
   authorId: Schema.Int,
 });

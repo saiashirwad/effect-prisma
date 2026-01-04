@@ -75,7 +75,7 @@ gh.generatorHandler({
       const fileName = `${toSnakeCase(model.name)}.ts`;
       await fs.writeFile(
         path.join(schemasOutputDir, fileName),
-        generateModelSchema(model, config.runtimePath)
+        generateModelSchema(model, config.runtimePath, config.scalarMappings)
       );
     }
 

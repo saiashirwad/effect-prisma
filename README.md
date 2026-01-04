@@ -113,8 +113,23 @@ generator effect {
   output       = "./generated/effect"          # Repository output path
   runtimePath  = "effect-prisma/runtime"       # Import path for runtime (customize for path aliases)
   schemasOutput = "./generated/effect/schemas" # Schema output path
+  scalarMappings = "{\"Json\":\"Schema.parseJson()\",\"BigInt\":\"Schema.BigInt\",\"Bytes\":\"Schema.Uint8ArrayFromBase64\"}"
 }
 ```
+
+`scalarMappings` accepts a JSON object (recommended) or a comma-separated list of `Type=Schema` entries. Use it to override Prisma scalar mappings without a plugin.
+Defaults for `BigInt` and `Bytes` use Prisma's runtime types (`Schema.BigIntFromSelf`, `Schema.Uint8ArrayFromSelf`). If you want string encodings for JSON interchange, override them to `Schema.BigInt` and `Schema.Uint8ArrayFromBase64`.
+
+Default scalar mappings:
+- `String` → `Schema.String`
+- `Int` → `Schema.Int`
+- `BigInt` → `Schema.BigIntFromSelf`
+- `Float` → `Schema.Number`
+- `Boolean` → `Schema.Boolean`
+- `DateTime` → `Schema.Date`
+- `Decimal` → `PrismaDecimal`
+- `Bytes` → `Schema.Uint8ArrayFromSelf`
+- `Json` → `Schema.Unknown`
 
 ## API
 

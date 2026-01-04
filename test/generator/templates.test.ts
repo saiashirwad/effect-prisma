@@ -336,6 +336,14 @@ describe("generateModelSchema", () => {
     expect(result).toContain('import { PrismaDecimal } from "effect-prisma/runtime"');
   });
 
+  test("skips PrismaDecimal when scalarMappings override Decimal", () => {
+    const result = generateModelSchema(mockProductModel, "effect-prisma/runtime", {
+      Decimal: "Schema.String",
+    });
+    expect(result).not.toContain("PrismaDecimal");
+    expect(result).toContain("price: Schema.String");
+  });
+
   test("does not import PrismaDecimal when no Decimal fields", () => {
     const result = generateModelSchema(mockUserModel, "effect-prisma/runtime");
     expect(result).not.toContain("PrismaDecimal");

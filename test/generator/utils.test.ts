@@ -110,9 +110,9 @@ describe("mapPrismaTypeToEffectSchema", () => {
       expect(mapPrismaTypeToEffectSchema(field)).toBe("Schema.Int");
     });
 
-    test("maps BigInt to Schema.Int", () => {
+    test("maps BigInt to Schema.BigIntFromSelf", () => {
       const field = createMockField({ type: "BigInt" });
-      expect(mapPrismaTypeToEffectSchema(field)).toBe("Schema.Int");
+      expect(mapPrismaTypeToEffectSchema(field)).toBe("Schema.BigIntFromSelf");
     });
 
     test("maps Float to Schema.Number", () => {
@@ -135,6 +135,11 @@ describe("mapPrismaTypeToEffectSchema", () => {
       expect(mapPrismaTypeToEffectSchema(field)).toBe("PrismaDecimal");
     });
 
+    test("maps Bytes to Schema.Uint8ArrayFromSelf", () => {
+      const field = createMockField({ type: "Bytes" });
+      expect(mapPrismaTypeToEffectSchema(field)).toBe("Schema.Uint8ArrayFromSelf");
+    });
+
     test("maps Json to Schema.Unknown", () => {
       const field = createMockField({ type: "Json" });
       expect(mapPrismaTypeToEffectSchema(field)).toBe("Schema.Unknown");
@@ -143,6 +148,40 @@ describe("mapPrismaTypeToEffectSchema", () => {
     test("maps unknown type to Schema.Unknown", () => {
       const field = createMockField({ type: "CustomType" });
       expect(mapPrismaTypeToEffectSchema(field)).toBe("Schema.Unknown");
+    });
+  });
+
+  describe("scalar mapping overrides", () => {
+    test("uses override for scalar type", () => {
+      const field = createMockField({ type: "Decimal" });
+      expect(
+        mapPrismaTypeToEffectSchema(field, { Decimal: "Schema.String" })
+      ).toBe("Schema.String");
+    });
+
+    test("applies overrides before list/optional wrapping", () => {
+      const field = createMockField({
+        type: "Bytes",
+        isList: true,
+        isRequired: false,
+      });
+      expect(
+        mapPrismaTypeToEffectSchema(field, { Bytes: "Schema.Uint8Array" })
+      ).toBe("Schema.NullOr(Schema.Array(Schema.Uint8Array))");
+    });
+
+    test("does not override enum fields", () => {
+      const field = createMockField({ kind: "enum", type: "UserRole" });
+      expect(
+        mapPrismaTypeToEffectSchema(field, { UserRole: "Schema.String" })
+      ).toBe("UserRoleSchema");
+    });
+
+    test("ignores overrides for object fields", () => {
+      const field = createMockField({ kind: "object", type: "User" });
+      expect(
+        mapPrismaTypeToEffectSchema(field, { User: "Schema.String" })
+      ).toBe("");
     });
   });
 
@@ -224,6 +263,7 @@ describe("parseGeneratorConfig", () => {
       runtimePath: "effect-prisma/runtime",
       outputDir: "/output",
       schemasOutputDir: "/output/schemas",
+      scalarMappings: {},
     });
   });
 
@@ -246,6 +286,7 @@ describe("parseGeneratorConfig", () => {
       runtimePath: "@/r",
       outputDir: "/output",
       schemasOutputDir: "/s",
+      scalarMappings: {},
     });
   });
 
@@ -257,5 +298,40 @@ describe("parseGeneratorConfig", () => {
   test("handles undefined values", () => {
     const result = parseGeneratorConfig({ runtimePath: undefined }, "/output");
     expect(result.runtimePath).toBe("effect-prisma/runtime");
+  });
+
+  test("parses scalarMappings JSON", () => {
+    const result = parseGeneratorConfig(
+      { scalarMappings: '{"Decimal":"PrismaDecimal","BigInt":"Schema.BigInt"}' },
+      "/output"
+    );
+    expect(result.scalarMappings).toEqual({
+      Decimal: "PrismaDecimal",
+      BigInt: "Schema.BigInt",
+    });
+  });
+
+  test("parses scalarMappings list", () => {
+    const result = parseGeneratorConfig(
+      { scalarMappings: "Decimal=PrismaDecimal, BigInt=Schema.BigInt" },
+      "/output"
+    );
+    expect(result.scalarMappings).toEqual({
+      Decimal: "PrismaDecimal",
+      BigInt: "Schema.BigInt",
+    });
+  });
+
+  test("merges scalarMappings array entries", () => {
+    const result = parseGeneratorConfig(
+      {
+        scalarMappings: ["Decimal=PrismaDecimal", "BigInt=Schema.BigInt"],
+      },
+      "/output"
+    );
+    expect(result.scalarMappings).toEqual({
+      Decimal: "PrismaDecimal",
+      BigInt: "Schema.BigInt",
+    });
   });
 });
