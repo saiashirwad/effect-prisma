@@ -106,7 +106,7 @@ export function generateRepositoryMethods(modelName: string): string {
     findFirst: (args, mapError) => {
       const effect = exec(
         db => db.${modelNameCamel}.findFirstOrThrow(args ?? ({} as any)),
-        cause => new PrismaNotFoundError({ kind: parsePrismaErrorKind(cause), cause, table: "${modelName}", where: args?.where as any }),
+        cause => new PrismaNotFoundError({ kind: parsePrismaErrorKind(cause), cause, table: "${modelName}", where: Option.fromNullable(args?.where) }),
       ) as any;
       return mapError ? Effect.mapError(effect, mapError) : effect;
     },
@@ -114,7 +114,7 @@ export function generateRepositoryMethods(modelName: string): string {
     findUnique: (args, mapError) => {
       const effect = exec(
         db => db.${modelNameCamel}.findUniqueOrThrow(args),
-        cause => new PrismaNotFoundError({ kind: parsePrismaErrorKind(cause), cause, table: "${modelName}", where: args.where }),
+        cause => new PrismaNotFoundError({ kind: parsePrismaErrorKind(cause), cause, table: "${modelName}", where: Option.some(args.where) }),
       ) as any;
       return mapError ? Effect.mapError(effect, mapError) : effect;
     },
@@ -122,7 +122,7 @@ export function generateRepositoryMethods(modelName: string): string {
     findMany: (args, mapError) => {
       const effect = exec(
         db => db.${modelNameCamel}.findMany(args ?? ({} as any)),
-        cause => new PrismaQueryError({ kind: parsePrismaErrorKind(cause), cause, table: "${modelName}", where: args?.where as any }),
+        cause => new PrismaQueryError({ kind: parsePrismaErrorKind(cause), cause, table: "${modelName}", where: Option.fromNullable(args?.where) }),
       ) as any;
       return mapError ? Effect.mapError(effect, mapError) : effect;
     },
@@ -178,7 +178,7 @@ export function generateRepositoryMethods(modelName: string): string {
     delete: (args, mapError) => {
       const effect = exec(
         db => db.${modelNameCamel}.delete(args),
-        cause => new PrismaDeleteError({ kind: parsePrismaErrorKind(cause), cause, table: "${modelName}", where: args.where as any }),
+        cause => new PrismaDeleteError({ kind: parsePrismaErrorKind(cause), cause, table: "${modelName}", where: Option.some(args.where) }),
       ) as any;
       return mapError ? Effect.mapError(effect, mapError) : effect;
     },
@@ -186,7 +186,7 @@ export function generateRepositoryMethods(modelName: string): string {
     deleteMany: (args, mapError) => {
       const effect = exec(
         db => db.${modelNameCamel}.deleteMany(args ?? ({} as any)),
-        cause => new PrismaDeleteError({ kind: parsePrismaErrorKind(cause), cause, table: "${modelName}", where: args?.where as any }),
+        cause => new PrismaDeleteError({ kind: parsePrismaErrorKind(cause), cause, table: "${modelName}", where: Option.fromNullable(args?.where) }),
       ) as any;
       return mapError ? Effect.mapError(effect, mapError) : effect;
     },
@@ -194,7 +194,7 @@ export function generateRepositoryMethods(modelName: string): string {
     count: (args, mapError) => {
       const effect = exec(
         db => db.${modelNameCamel}.count(args ?? ({} as any)),
-        cause => new PrismaQueryError({ kind: parsePrismaErrorKind(cause), cause, table: "${modelName}", where: args?.where as any }),
+        cause => new PrismaQueryError({ kind: parsePrismaErrorKind(cause), cause, table: "${modelName}", where: Option.fromNullable(args?.where) }),
       ) as any;
       return mapError ? Effect.mapError(effect, mapError) : effect;
     },
@@ -210,7 +210,7 @@ export function generateRepositoryFile(
   return `${HEADER}
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Prisma, PrismaClient } from "@prisma/client";
-import { Effect } from "effect";
+import { Effect, Option } from "effect";
 
 import {
   PrismaNotFoundError,

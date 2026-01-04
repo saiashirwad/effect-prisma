@@ -24,7 +24,7 @@ export const PrismaLiveScoped = (
         pipe(
           Effect.promise(() => client.$disconnect()),
           Effect.tap(() => Effect.logDebug("Prisma disconnected")),
-          Effect.ignore
+          Effect.catchAllCause(() => Effect.void)
         )
     )
   );

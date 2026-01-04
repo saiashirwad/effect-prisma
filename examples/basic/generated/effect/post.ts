@@ -2,7 +2,7 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Prisma, PrismaClient } from "@prisma/client";
-import { Effect } from "effect";
+import { Effect, Option } from "effect";
 
 import {
   PrismaNotFoundError,
@@ -85,7 +85,7 @@ export function createPostRepository(exec: Exec): PostRepository {
     findFirst: (args, mapError) => {
       const effect = exec(
         db => db.post.findFirstOrThrow(args ?? ({} as any)),
-        cause => new PrismaNotFoundError({ kind: parsePrismaErrorKind(cause), cause, table: "Post", where: args?.where as any }),
+        cause => new PrismaNotFoundError({ kind: parsePrismaErrorKind(cause), cause, table: "Post", where: Option.fromNullable(args?.where) }),
       ) as any;
       return mapError ? Effect.mapError(effect, mapError) : effect;
     },
@@ -93,7 +93,7 @@ export function createPostRepository(exec: Exec): PostRepository {
     findUnique: (args, mapError) => {
       const effect = exec(
         db => db.post.findUniqueOrThrow(args),
-        cause => new PrismaNotFoundError({ kind: parsePrismaErrorKind(cause), cause, table: "Post", where: args.where }),
+        cause => new PrismaNotFoundError({ kind: parsePrismaErrorKind(cause), cause, table: "Post", where: Option.some(args.where) }),
       ) as any;
       return mapError ? Effect.mapError(effect, mapError) : effect;
     },
@@ -101,7 +101,7 @@ export function createPostRepository(exec: Exec): PostRepository {
     findMany: (args, mapError) => {
       const effect = exec(
         db => db.post.findMany(args ?? ({} as any)),
-        cause => new PrismaQueryError({ kind: parsePrismaErrorKind(cause), cause, table: "Post", where: args?.where as any }),
+        cause => new PrismaQueryError({ kind: parsePrismaErrorKind(cause), cause, table: "Post", where: Option.fromNullable(args?.where) }),
       ) as any;
       return mapError ? Effect.mapError(effect, mapError) : effect;
     },
@@ -157,7 +157,7 @@ export function createPostRepository(exec: Exec): PostRepository {
     delete: (args, mapError) => {
       const effect = exec(
         db => db.post.delete(args),
-        cause => new PrismaDeleteError({ kind: parsePrismaErrorKind(cause), cause, table: "Post", where: args.where as any }),
+        cause => new PrismaDeleteError({ kind: parsePrismaErrorKind(cause), cause, table: "Post", where: Option.some(args.where) }),
       ) as any;
       return mapError ? Effect.mapError(effect, mapError) : effect;
     },
@@ -165,7 +165,7 @@ export function createPostRepository(exec: Exec): PostRepository {
     deleteMany: (args, mapError) => {
       const effect = exec(
         db => db.post.deleteMany(args ?? ({} as any)),
-        cause => new PrismaDeleteError({ kind: parsePrismaErrorKind(cause), cause, table: "Post", where: args?.where as any }),
+        cause => new PrismaDeleteError({ kind: parsePrismaErrorKind(cause), cause, table: "Post", where: Option.fromNullable(args?.where) }),
       ) as any;
       return mapError ? Effect.mapError(effect, mapError) : effect;
     },
@@ -173,7 +173,7 @@ export function createPostRepository(exec: Exec): PostRepository {
     count: (args, mapError) => {
       const effect = exec(
         db => db.post.count(args ?? ({} as any)),
-        cause => new PrismaQueryError({ kind: parsePrismaErrorKind(cause), cause, table: "Post", where: args?.where as any }),
+        cause => new PrismaQueryError({ kind: parsePrismaErrorKind(cause), cause, table: "Post", where: Option.fromNullable(args?.where) }),
       ) as any;
       return mapError ? Effect.mapError(effect, mapError) : effect;
     },

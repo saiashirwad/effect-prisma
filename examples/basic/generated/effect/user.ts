@@ -2,7 +2,7 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Prisma, PrismaClient } from "@prisma/client";
-import { Effect } from "effect";
+import { Effect, Option } from "effect";
 
 import {
   PrismaNotFoundError,
@@ -85,7 +85,7 @@ export function createUserRepository(exec: Exec): UserRepository {
     findFirst: (args, mapError) => {
       const effect = exec(
         db => db.user.findFirstOrThrow(args ?? ({} as any)),
-        cause => new PrismaNotFoundError({ kind: parsePrismaErrorKind(cause), cause, table: "User", where: args?.where as any }),
+        cause => new PrismaNotFoundError({ kind: parsePrismaErrorKind(cause), cause, table: "User", where: Option.fromNullable(args?.where) }),
       ) as any;
       return mapError ? Effect.mapError(effect, mapError) : effect;
     },
@@ -93,7 +93,7 @@ export function createUserRepository(exec: Exec): UserRepository {
     findUnique: (args, mapError) => {
       const effect = exec(
         db => db.user.findUniqueOrThrow(args),
-        cause => new PrismaNotFoundError({ kind: parsePrismaErrorKind(cause), cause, table: "User", where: args.where }),
+        cause => new PrismaNotFoundError({ kind: parsePrismaErrorKind(cause), cause, table: "User", where: Option.some(args.where) }),
       ) as any;
       return mapError ? Effect.mapError(effect, mapError) : effect;
     },
@@ -101,7 +101,7 @@ export function createUserRepository(exec: Exec): UserRepository {
     findMany: (args, mapError) => {
       const effect = exec(
         db => db.user.findMany(args ?? ({} as any)),
-        cause => new PrismaQueryError({ kind: parsePrismaErrorKind(cause), cause, table: "User", where: args?.where as any }),
+        cause => new PrismaQueryError({ kind: parsePrismaErrorKind(cause), cause, table: "User", where: Option.fromNullable(args?.where) }),
       ) as any;
       return mapError ? Effect.mapError(effect, mapError) : effect;
     },
@@ -157,7 +157,7 @@ export function createUserRepository(exec: Exec): UserRepository {
     delete: (args, mapError) => {
       const effect = exec(
         db => db.user.delete(args),
-        cause => new PrismaDeleteError({ kind: parsePrismaErrorKind(cause), cause, table: "User", where: args.where as any }),
+        cause => new PrismaDeleteError({ kind: parsePrismaErrorKind(cause), cause, table: "User", where: Option.some(args.where) }),
       ) as any;
       return mapError ? Effect.mapError(effect, mapError) : effect;
     },
@@ -165,7 +165,7 @@ export function createUserRepository(exec: Exec): UserRepository {
     deleteMany: (args, mapError) => {
       const effect = exec(
         db => db.user.deleteMany(args ?? ({} as any)),
-        cause => new PrismaDeleteError({ kind: parsePrismaErrorKind(cause), cause, table: "User", where: args?.where as any }),
+        cause => new PrismaDeleteError({ kind: parsePrismaErrorKind(cause), cause, table: "User", where: Option.fromNullable(args?.where) }),
       ) as any;
       return mapError ? Effect.mapError(effect, mapError) : effect;
     },
@@ -173,7 +173,7 @@ export function createUserRepository(exec: Exec): UserRepository {
     count: (args, mapError) => {
       const effect = exec(
         db => db.user.count(args ?? ({} as any)),
-        cause => new PrismaQueryError({ kind: parsePrismaErrorKind(cause), cause, table: "User", where: args?.where as any }),
+        cause => new PrismaQueryError({ kind: parsePrismaErrorKind(cause), cause, table: "User", where: Option.fromNullable(args?.where) }),
       ) as any;
       return mapError ? Effect.mapError(effect, mapError) : effect;
     },
