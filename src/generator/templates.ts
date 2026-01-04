@@ -255,15 +255,15 @@ export function generateIndexFile(
     .join("\n");
 
   const repositoriesInterface = sortedModels
-    .map((model) => `  ${toSnakeCase(model.name)}: ${model.name}Repository;`)
+    .map((model) => `  ${toCamelCase(model.name)}: ${model.name}Repository;`)
     .join("\n");
 
   const returnObject = sortedModels
-    .map((model) => `      ${toSnakeCase(model.name)}: create${model.name}Repository(exec),`)
+    .map((model) => `      ${toCamelCase(model.name)}: create${model.name}Repository(exec),`)
     .join("\n");
 
   const helperReturnObject = sortedModels
-    .map((model) => `    ${toSnakeCase(model.name)}: create${model.name}Repository(exec),`)
+    .map((model) => `    ${toCamelCase(model.name)}: create${model.name}Repository(exec),`)
     .join("\n");
 
   return `${HEADER}

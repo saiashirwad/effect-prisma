@@ -1,0 +1,24 @@
+{
+  "name": "effect-prisma-postgres-example",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down",
+    "db:reset": "docker compose down -v && docker compose up -d",
+    "generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:seed": "bun run src/seed.ts",
+    "setup": "bun run db:up && sleep 2 && bun run generate && bun run db:push && bun run db:seed",
+    "start": "bun run src/index.ts"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.0.0",
+    "effect": "^3.0.0",
+    "effect-prisma": "file:../.."
+  },
+  "devDependencies": {
+    "prisma": "^6.0.0",
+    "@types/bun": "latest"
+  }
+}
